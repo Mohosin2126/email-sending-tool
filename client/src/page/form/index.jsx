@@ -1,8 +1,10 @@
-
 import { useForm } from 'react-hook-form';
+import axios from 'axios';
+import { useState } from 'react';
 
 export default function Mailer() {
   const { register, handleSubmit, setValue, formState: { errors } } = useForm();
+  const [status, setStatus] = useState('');
 
   // Function to read and parse CSV file
   const readCSV = (file, callback) => {
@@ -38,17 +40,47 @@ export default function Mailer() {
   const handleFileChange = (event, type) => {
     const file = event.target.files[0];
     if (file) {
-      readCSV(file, (parsedData) => {
-        console.log(`${type} data:`, parsedData);
-        // Set the parsed data into your form state or handle it as needed
-        setValue(type, parsedData);
-      });
+      if (type === 'gmailAccount' || type === 'recipientEmails') {
+        if (file.type !== 'text/csv') {
+          alert('Please upload a valid CSV file.');
+          return;
+        }
+        readCSV(file, (parsedData) => {
+          console.log(`${type} data:`, parsedData);
+          setValue(type, parsedData);
+        });
+      } else if (type === 'htmlTemplate' && file.type !== 'text/html') {
+        alert('Please upload a valid HTML file.');
+      }
     }
   };
 
-  const onSubmit = (data) => {
-    // Handle form submission
-    console.log(data);
+  const onSubmit = async (data) => {
+    setStatus('Sending emails...');
+    try {
+      const formData = new FormData();
+      Object.keys(data).forEach(key => {
+        if (data[key] instanceof FileList) {
+          formData.append(key, data[key][0]);
+        } else {
+          formData.append(key, data[key]);
+        }
+      });
+
+      const response = await axios.post('/send-email', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
+
+      if (response.status === 200) {
+        setStatus('Emails Sent Successfully!');
+      } else {
+        setStatus('Error: Failed to send emails.');
+      }
+    } catch (error) {
+      setStatus('Error: Failed to send emails.');
+    }
   };
 
   return (
@@ -83,10 +115,10 @@ export default function Mailer() {
             type="text"
             id="senderName"
             placeholder="Enter sender name"
-            {...register('senderName', { required: true })}
+            {...register('senderName', { required: 'Sender name is required' })}
             className="w-full p-2 mt-1 border border-gray-300 rounded"
           />
-          {errors.senderName && <p className="text-red-500 text-sm">Sender name is required</p>}
+          {errors.senderName && <p className="text-red-500 text-sm">{errors.senderName.message}</p>}
         </div>
 
         <div>
@@ -95,10 +127,10 @@ export default function Mailer() {
             type="text"
             id="subject"
             placeholder="Enter email subject"
-            {...register('subject', { required: true })}
+            {...register('subject', { required: 'Subject is required' })}
             className="w-full p-2 mt-1 border border-gray-300 rounded"
           />
-          {errors.subject && <p className="text-red-500 text-sm">Subject is required</p>}
+          {errors.subject && <p className="text-red-500 text-sm">{errors.subject.message}</p>}
         </div>
 
         <div>
@@ -107,7 +139,7 @@ export default function Mailer() {
             type="file"
             id="htmlTemplate"
             accept=".html"
-            {...register('htmlTemplate')}
+            onChange={(e) => handleFileChange(e, 'htmlTemplate')}
             className="w-full p-2 mt-1 border border-gray-300 rounded"
           />
         </div>
@@ -130,6 +162,10 @@ export default function Mailer() {
           Send Emails
         </button>
       </form>
+
+      <div id="statusText" className="mt-6 p-4 border border-gray-300 rounded bg-gray-50 text-center">
+        {status}
+      </div>
     </div>
   );
 }
