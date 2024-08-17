@@ -1,19 +1,20 @@
+// Import necessary modules
 const express = require('express');
 const cors = require('cors');
 const { google } = require('googleapis');
 const nodemailer = require('nodemailer');
 
-// Configuration
+// Initialize Express app
+const app = express();
+app.use(cors());
+app.use(express.json()); // To parse JSON bodies
+app.use(express.urlencoded({ extended: true })); // To parse URL-encoded bodies
+
+// Configuration (Replace with your actual values)
 const CLIENT_ID = 'your-client-id';
 const CLIENT_SECRET = 'your-client-secret';
 const REDIRECT_URI = 'your-redirect-uri';
 const REFRESH_TOKEN = 'your-refresh-token';
-
-// Initialize Express app
-const app = express();
-app.use(cors());
-app.use(express.json());  // To parse JSON bodies
-app.use(express.urlencoded({ extended: true }));  // To parse URL-encoded bodies
 
 // Gmail API authentication and setup
 async function getOAuth2Client() {
