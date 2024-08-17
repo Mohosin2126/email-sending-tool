@@ -1,14 +1,58 @@
-import { useForm } from "react-hook-form";
 
-export default function Mailer(){
-    const { register, handleSubmit, formState: { errors } } = useForm();
-  
-    const onSubmit = (data) => {
-      // Handle form submission
-      console.log(data);
+import { useForm } from 'react-hook-form';
+
+export default function Mailer() {
+  const { register, handleSubmit, setValue, formState: { errors } } = useForm();
+
+  // Function to read and parse CSV file
+  const readCSV = (file, callback) => {
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const csvData = event.target.result;
+      const parsedData = parseCSV(csvData);
+      callback(parsedData);
     };
-    return (
-        <div className="max-w-4xl mx-auto p-6 bg-white rounded-lg shadow-md mt-10">
+    reader.readAsText(file);
+  };
+
+  // Function to parse CSV into array of objects
+  const parseCSV = (csvData) => {
+    const lines = csvData.split('\n');
+    const result = [];
+    const headers = lines[0].split(',');
+
+    for (let i = 1; i < lines.length; i++) {
+      const obj = {};
+      const currentLine = lines[i].split(',');
+
+      headers.forEach((header, index) => {
+        obj[header.trim()] = currentLine[index].trim();
+      });
+
+      result.push(obj);
+    }
+    return result;
+  };
+
+  // Handle file input change
+  const handleFileChange = (event, type) => {
+    const file = event.target.files[0];
+    if (file) {
+      readCSV(file, (parsedData) => {
+        console.log(`${type} data:`, parsedData);
+        // Set the parsed data into your form state or handle it as needed
+        setValue(type, parsedData);
+      });
+    }
+  };
+
+  const onSubmit = (data) => {
+    // Handle form submission
+    console.log(data);
+  };
+
+  return (
+    <div className="max-w-4xl mx-auto p-6 bg-white rounded-lg shadow-md mt-10">
       <h1 className="text-2xl font-semibold text-gray-800 text-center">Email Sending Tool</h1>
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
         <div>
@@ -17,7 +61,7 @@ export default function Mailer(){
             type="file"
             id="gmailAccount"
             accept=".csv"
-            {...register('gmailAccount')}
+            onChange={(e) => handleFileChange(e, 'gmailAccount')}
             className="w-full p-2 mt-1 border border-gray-300 rounded"
           />
         </div>
@@ -28,7 +72,7 @@ export default function Mailer(){
             type="file"
             id="recipientEmails"
             accept=".csv"
-            {...register('recipientEmails')}
+            onChange={(e) => handleFileChange(e, 'recipientEmails')}
             className="w-full p-2 mt-1 border border-gray-300 rounded"
           />
         </div>
@@ -88,5 +132,4 @@ export default function Mailer(){
       </form>
     </div>
   );
-};
-
+}
