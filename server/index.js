@@ -8,7 +8,7 @@ const nodemailer = require('nodemailer');
 const app = express();
 app.use(cors());
 app.use(express.json()); // To parse JSON bodies
-app.use(express.urlencoded({ extended: true })); // To parse URL-encoded bodies
+app.use(express.urlencoded({ extended: true })); 
 
 // Configuration (Replace with your actual values)
 const CLIENT_ID = 'your-client-id';
