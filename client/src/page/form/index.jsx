@@ -19,16 +19,16 @@ export default function Mailer() {
 
   // Function to parse CSV into array of objects
   const parseCSV = (csvData) => {
-    const lines = csvData.split('\n');
+    const lines = csvData.split('\n').filter(line => line.trim() !== '');
     const result = [];
-    const headers = lines[0].split(',');
+    const headers = lines[0].split(',').map(header => header.trim());
 
     for (let i = 1; i < lines.length; i++) {
       const obj = {};
       const currentLine = lines[i].split(',');
 
       headers.forEach((header, index) => {
-        obj[header.trim()] = currentLine[index].trim();
+        obj[header] = currentLine[index] ? currentLine[index].trim() : '';
       });
 
       result.push(obj);
@@ -63,22 +63,25 @@ export default function Mailer() {
         if (data[key] instanceof FileList) {
           formData.append(key, data[key][0]);
         } else {
-          formData.append(key, data[key]);
+          formData.append(key, JSON.stringify(data[key]));
         }
       });
 
-      const response = await axios.post('/send-email', formData, {
+      const response = await axios.post('http://localhost:3000/send-email', formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
         },
       });
 
       if (response.status === 200) {
+        console.log(response?.data)
         setStatus('Emails Sent Successfully!');
       } else {
+        console.log(response.data)
         setStatus('Error: Failed to send emails.');
       }
     } catch (error) {
+      console.log(error)
       setStatus('Error: Failed to send emails.');
     }
   };
