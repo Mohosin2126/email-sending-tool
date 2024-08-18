@@ -66,6 +66,16 @@ app.post('/send-email', async (req, res) => {
     }
 });
 
+// checking the server running 
+app.get("/", async (req, res) => {
+    try {
+        res.status(200).send("mailer is running!");
+    } catch (error) {
+        res.status(500).send("Internal Server Error");
+    }
+});
+
+
 // Start the server
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
