@@ -15,7 +15,7 @@ app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
 const PORT = 3000;
 
-// Configuration (Replace with your actual values)
+// Configuration
 const CLIENT_ID = process.env.VITE_CLIENT_ID;
 const CLIENT_SECRET = process.env.VITE_CLIENT_SECRET;
 const REDIRECT_URI = process.env.VITE_REDIRECT_URI;
@@ -24,9 +24,7 @@ const EMAIL_USER = process.env.VITE_EMAIL_USER;
 
 // Gmail API authentication and setup
 async function getOAuth2Client() {
-    const oAuth2Client = new google.auth.OAuth2(
-        CLIENT_ID, CLIENT_SECRET, REDIRECT_URI
-    );
+    const oAuth2Client = new google.auth.OAuth2(CLIENT_ID, CLIENT_SECRET, REDIRECT_URI);
     oAuth2Client.setCredentials({ refresh_token: REFRESH_TOKEN });
     return oAuth2Client;
 }
@@ -35,9 +33,7 @@ async function getOAuth2Client() {
 async function sendEmail(emailData) {
     try {
         const oAuth2Client = await getOAuth2Client();
-        console.log('OAuth2 Client obtained:', oAuth2Client);
         const accessToken = await oAuth2Client.getAccessToken();
-        console.log('Access Token obtained:', accessToken.token);
 
         const transporter = nodemailer.createTransport({
             service: 'gmail',
